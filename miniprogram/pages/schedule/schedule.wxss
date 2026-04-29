@@ -1,0 +1,141 @@
+/* pages/schedule/schedule.wxss */
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: var(--text-main);
+  margin-bottom: 30rpx;
+}
+
+/* 矩阵容器：弹性布局，限制高度 */
+.matrix-container {
+  display: flex;
+  background-color: #fff;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  margin-bottom: 40rpx;
+}
+
+/* 左侧固定时间轴 */
+.fixed-left {
+  width: 140rpx;
+  background-color: #f9fafb;
+  border-right: 2rpx solid #eeeeee;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 右侧滚动区域 */
+.scroll-right {
+  flex: 1;
+  width: 100%;
+}
+
+.grid-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 行通用样式 */
+.matrix-row {
+  display: flex;
+  border-bottom: 2rpx solid #eeeeee;
+}
+.matrix-row:last-child {
+  border-bottom: none;
+}
+
+/* 单元格通用样式 */
+.matrix-cell {
+  height: 120rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.corner-cell, .date-cell {
+  height: 80rpx; /* 表头矮一点 */
+}
+
+.date-cell {
+  width: 140rpx; /* 每一列的固定宽度 */
+  flex-shrink: 0;
+}
+
+.date-text {
+  font-size: 26rpx;
+  color: var(--text-sub);
+}
+
+.time-cell {
+  font-family: monospace;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: var(--text-main);
+}
+
+.status-cell {
+  width: 140rpx;
+  flex-shrink: 0;
+  padding: 10rpx;
+}
+
+/* 状态指示器 (胶囊形状) */
+.status-indicator {
+  width: 100%;
+  height: 60rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  transition: all 0.2s;
+}
+
+.available {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 2rpx solid #bbf7d0;
+}
+
+.full {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.selected {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  font-weight: bold;
+  box-shadow: 0 4rpx 8rpx rgba(7, 193, 96, 0.4);
+  transform: scale(1.05);
+}
+
+/* 选中状态文字反馈 */
+.selection-feedback {
+  text-align: center;
+  font-size: 28rpx;
+  color: var(--text-main);
+  margin-bottom: 40rpx;
+}
+.highlight {
+  color: var(--primary-color);
+  font-weight: bold;
+  font-size: 32rpx;
+}
+
+/* 底部按钮与弹窗保持原有样式 */
+.footer { margin-top: 20rpx; }
+.book-btn { background-color: var(--primary-color); color: #fff; border-radius: 50rpx; font-size: 32rpx;}
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 999;}
+.modal-box { background-color: #fff; width: 80%; border-radius: var(--border-radius); padding: 40rpx;}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30rpx;}
+.modal-title { font-size: 36rpx; font-weight: bold;}
+.close-btn { font-size: 48rpx; color: #999; line-height: 1;}
+.form-item { margin-bottom: 30rpx;}
+.label { display: block; font-size: 28rpx; color: var(--text-sub); margin-bottom: 10rpx;}
+.input { background-color: var(--bg-color); height: 80rpx; border-radius: 8rpx; padding: 0 20rpx; font-size: 28rpx;}
+.submit-btn { background-color: var(--primary-color); color: #fff; border-radius: 50rpx; margin-top: 40rpx;}

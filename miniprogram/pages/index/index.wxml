@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="header">
+    <text class="title">选择您的出海体验</text>
+    <text class="subtitle">探索最纯粹的海洋魅力</text>
+  </view>
+
+  <view class="project-list">
+    <view class="project-card" bindtap="goToBooking" data-type="snorkeling">
+      <view class="card-content">
+        <text class="card-title">🤿 浮潜体验</text>
+        <text class="card-desc">探索斑斓的珊瑚礁</text>
+      </view>
+      <view class="arrow">></view>
+    </view>
+
+    <view class="project-card" bindtap="goToBooking" data-type="fishing">
+      <view class="card-content">
+        <text class="card-title">🎣 深海狂飙海钓</text>
+        <text class="card-desc">与大货的终极博弈</text>
+      </view>
+      <view class="arrow">></view>
+    </view>
+
+    <view class="project-card" bindtap="goToBooking" data-type="mixed">
+      <view class="card-content">
+        <text class="card-title">🚤 我全都要</text>
+        <text class="card-desc">浮潜海钓一次满足</text>
+      </view>
+      <view class="arrow">></view>
+    </view>
+  </view>
+</view>

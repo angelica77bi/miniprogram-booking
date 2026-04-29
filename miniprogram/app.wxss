@@ -1,0 +1,19 @@
+/**app.wxss**/
+page {
+  /* 全局 CSS 变量 */
+  --primary-color: #07c160; 
+  --bg-color: #f5f7fa;
+  --text-main: #333333;
+  --text-sub: #888888;
+  --border-radius: 16rpx;
+  
+  background-color: var(--bg-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica,
+    Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei',
+    sans-serif;
+}
+
+.container {
+  padding: 40rpx;
+  box-sizing: border-box;
+}

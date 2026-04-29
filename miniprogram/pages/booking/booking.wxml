@@ -1,0 +1,33 @@
+<view class="container">
+  <view class="header">
+    <text class="title">选择出海日期</text>
+  </view>
+
+  <view class="calendar-card">
+    <view class="calendar-header">
+      <view class="nav-btn" bindtap="prevMonth">◀</view>
+      <text class="month-title">{{year}}年 {{month}}月</text>
+      <view class="nav-btn" bindtap="nextMonth">▶</view>
+    </view>
+
+    <view class="week-days">
+      <text>日</text><text>一</text><text>二</text><text>三</text><text>四</text><text>五</text><text>六</text>
+    </view>
+
+    <view class="days-grid">
+      <view
+        wx:for="{{days}}"
+        wx:key="index"
+        class="day-cell {{item.empty ? 'empty' : ''}} {{item.isSelectable ? 'selectable' : 'disabled'}}"
+        bindtap="goToSchedule"
+        data-item="{{item}}"
+      >
+        <text wx:if="{{!item.empty}}">{{item.day}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="tips">
+    <text>💡 提示：仅开放当前月及未来两个月的档期预订，点击有效日期进入时段选择。</text>
+  </view>
+</view>

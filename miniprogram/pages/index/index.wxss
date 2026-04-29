@@ -1,0 +1,62 @@
+/* pages/index/index.wxss */
+.header {
+  margin-bottom: 60rpx;
+}
+
+.title {
+  display: block;
+  font-size: 48rpx;
+  font-weight: bold;
+  color: var(--text-main);
+  margin-bottom: 10rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: var(--text-sub);
+}
+
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.project-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 40rpx;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+.project-card:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 8rpx;
+}
+
+.card-desc {
+  font-size: 26rpx;
+  color: var(--text-sub);
+}
+
+.arrow {
+  font-size: 36rpx;
+  color: #cccccc;
+  font-family: monospace;
+}
