@@ -17,34 +17,23 @@ Page({
     // 2. 初始化日历
     this.initCalendar();
 
-    // 3. 🚨 新增：向云数据库请求匹配的船只
+    // 3. 向云数据库请求匹配的船只 (保留原有逻辑)
     this.fetchResources(activityType);
   },
 
-  // 🚨 新增函数：去云端找船
+  // 去云端找船 (保留原有逻辑)
   fetchResources(type) {
-    // 呼叫云数据库
     const db = wx.cloud.database();
-    
-    // 提示用户正在加载
-    wx.showLoading({ title: '匹配资源中...' });
-
     db.collection('resources').where({
-      // 核心过滤逻辑：找 capabilities 数组中包含当前项目类型的船，并且状态是 active 的
       capabilities: type,
       status: 'active'
     }).get({
       success: res => {
-        wx.hideLoading();
         console.log(`=== 成功从云端匹配到 ${res.data.length} 艘船 ===`);
-        console.log(res.data);
-        // 我们先把拿到的船只信息存到页面的 data 里备用
         this.setData({ availableBoats: res.data });
       },
       fail: err => {
-        wx.hideLoading();
         console.error('云端查询失败：', err);
-        wx.showToast({ title: '获取资源失败', icon: 'none' });
       }
     });
   },
@@ -64,7 +53,32 @@ Page({
       month
     });
     
-    this.renderMonth(year, month);
+    // 🚨 替换：不再直接渲染，而是去云端获取本月的满房状态
+    this.fetchCalendarStatus(year, month, this.data.activityType);
+  },
+
+  // 🚨 新增：去云端拉取当月的满房状态
+  fetchCalendarStatus(year, month, activityType) {
+    wx.showLoading({ title: '加载档期中...' });
+    wx.cloud.callFunction({
+      name: 'getCalendarStatus',
+      data: { year, month, activityType },
+      success: res => {
+        wx.hideLoading();
+        if (res.result && res.result.success) {
+          // 拿到云端算好的满房数组，重新渲染日历
+          const bookedDates = res.result.bookedDates || [];
+          this.renderMonth(year, month, bookedDates); 
+        } else {
+          this.renderMonth(year, month, []); // 失败兜底
+        }
+      },
+      fail: err => {
+        wx.hideLoading();
+        console.error('获取日历状态失败', err);
+        this.renderMonth(year, month, []); // 失败兜底全绿
+      }
+    });
   },
 
   // 格式化日期为 YYYY-MM-DD
@@ -75,8 +89,8 @@ Page({
     return `${y}-${m}-${d}`;
   },
 
-  // 渲染指定年月的日历数据
-  renderMonth(year, month) {
+  // 🚨 修改：渲染指定年月的日历数据，接收 bookedDates 参数
+  renderMonth(year, month, bookedDates = []) {
     const firstDay = new Date(year, month - 1, 1).getDay(); // 当月1号是星期几
     const daysInMonth = new Date(year, month, 0).getDate(); // 当月总天数
 
@@ -92,12 +106,16 @@ Page({
       
       // 判断该日期是否在允许的范围内（>=今天 且 <=最大日期）
       const isSelectable = dateStr >= this.data.todayStr && dateStr <= this.data.maxDateStr;
+      
+      // 🚨 判断这一天是否在后端的满房数组里
+      const isFull = bookedDates.includes(dateStr);
 
       days.push({
         empty: false,
         day: i,
         dateStr: dateStr,
-        isSelectable: isSelectable
+        isSelectable: isSelectable,
+        isFull: isFull // 记录满房状态
       });
     }
 
@@ -109,7 +127,6 @@ Page({
     const currentMonthFirst = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const viewMonthFirst = new Date(this.data.year, this.data.month - 2, 1);
     
-    // 限制：不能翻到当前月之前
     if (viewMonthFirst < currentMonthFirst) {
       wx.showToast({ title: '无法预订过去的日期', icon: 'none' });
       return;
@@ -118,7 +135,10 @@ Page({
     let { year, month } = this.data;
     if (month === 1) { year--; month = 12; }
     else { month--; }
-    this.renderMonth(year, month);
+    
+    // 🚨 替换：设置好年月后，重新请求云端
+    this.setData({ year, month });
+    this.fetchCalendarStatus(year, month, this.data.activityType);
   },
 
   // 下个月
@@ -128,7 +148,6 @@ Page({
     const currentYear = new Date().getFullYear();
     const monthsDiff = (year - currentYear) * 12 + (month - currentMonth);
 
-    // 限制：最多只能往后翻2个月 (当前月算第0个月)
     if (monthsDiff >= 2) {
       wx.showToast({ title: '仅开放未来三个月的预订', icon: 'none' });
       return;
@@ -136,12 +155,16 @@ Page({
 
     if (month === 12) { year++; month = 1; }
     else { month++; }
-    this.renderMonth(year, month);
+    
+    // 🚨 替换：设置好年月后，重新请求云端
+    this.setData({ year, month });
+    this.fetchCalendarStatus(year, month, this.data.activityType);
   },
 
   // 点击日期，携带日期和项目类型跳转到“时段页”
   goToSchedule(e) {
     const item = e.currentTarget.dataset.item;
+    // 🚨 满房 (isFull) 并没有在这里被拦截，所以满房状态依然可以点击跳转！
     if (item.empty || !item.isSelectable) return;
 
     wx.navigateTo({

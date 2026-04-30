@@ -54,6 +54,8 @@
 .day-cell {
   aspect-ratio: 1;
   display: flex;
+  /* 🚨 改为垂直排列，为了让“已满”文字在日期下方 */
+  flex-direction: column; 
   justify-content: center;
   align-items: center;
   font-size: 32rpx;
@@ -79,6 +81,25 @@
 .disabled {
   color: #cccccc;
   background-color: transparent;
+}
+
+/* 🚨 新增满房样式覆盖 */
+.full-day {
+  background-color: #f5f5f5 !important;
+  color: #999999 !important;
+}
+
+.full-day:active {
+  transform: scale(0.9);
+  /* 覆盖原本的点击高亮颜色，防止点击已满日期时变绿 */
+  background-color: #e0e0e0 !important; 
+}
+
+.full-text {
+  font-size: 20rpx;
+  color: #ff4d4f; /* 红色字提示已满 */
+  line-height: 1;
+  margin-top: 4rpx;
 }
 
 .tips {

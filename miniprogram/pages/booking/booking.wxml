@@ -18,11 +18,14 @@
       <view
         wx:for="{{days}}"
         wx:key="index"
-        class="day-cell {{item.empty ? 'empty' : ''}} {{item.isSelectable ? 'selectable' : 'disabled'}}"
+        class="day-cell {{item.empty ? 'empty' : ''}} {{item.isSelectable ? 'selectable' : 'disabled'}} {{item.isFull ? 'full-day' : ''}}"
         bindtap="goToSchedule"
         data-item="{{item}}"
       >
-        <text wx:if="{{!item.empty}}">{{item.day}}</text>
+        <block wx:if="{{!item.empty}}">
+          <text class="day-number">{{item.day}}</text>
+          <text wx:if="{{item.isFull}}" class="full-text">已满</text>
+        </block>
       </view>
     </view>
   </view>
