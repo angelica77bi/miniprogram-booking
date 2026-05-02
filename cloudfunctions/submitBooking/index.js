@@ -1,57 +1,54 @@
-// cloudfunctions/submitBooking/index.js
+// 引入微信 server sdk
 const cloud = require('wx-server-sdk');
-
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV }); // 使用当前环境
+// 使用当前云环境初始化
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
 
 exports.main = async (event, context) => {
-  // 从前端接收的参数
+  // 1. 获取当前调用者的微信 OpenID (为后期个人系统做准备)
+  const wxContext = cloud.getWXContext();
+  const userOpenId = wxContext.OPENID;
+
+  // 获取前端传过来的表单数据
   const { activityType, date, time, name, phone, count } = event;
 
   try {
-    // 1. 先查：找出所有能做该项目的船
+    // 2. 查找能做该项目的活动船只
     const boatsRes = await db.collection('resources').where({
       capabilities: activityType,
       status: 'active'
     }).get();
     
     const availableBoats = boatsRes.data;
-    if (availableBoats.length === 0) {
-      return { success: false, msg: '当前项目暂无可用船只' };
-    }
+    if (availableBoats.length === 0) return { success: false, msg: '当前项目无可用船只' };
 
-    // 2. 再查：查出这个日期+时间段，已经被占用的船只 ID
+    // 3. 查找该日期、该时段已经被占用的资源 (船只)
     const slotsRes = await db.collection('slots').where({
       date: date,
       time_slot: time
     }).get();
     
     const bookedBoatIds = slotsRes.data.map(slot => slot.resource_id);
-
-    // 3. 匹配：找出第一艘还没被占用的船
+    
+    // 4. 分配空闲船只
     const freeBoat = availableBoats.find(boat => !bookedBoatIds.includes(boat._id));
+    if (!freeBoat) return { success: false, msg: '该时段已满，请选择其他时段' };
 
-    if (!freeBoat) {
-      return { success: false, msg: '非常抱歉，此时段的船只已被订满' };
-    }
-
-    // 🚨 【炸弹 3 防护】—— 校验人数上限与合法性，防止超卖
+    // 5. 校验预订人数是否超出船只最大载客量
     const parsedCount = parseInt(count);
-    if (!parsedCount || parsedCount <= 0) {
-      return { success: false, msg: '请输入有效的预约人数' };
-    }
+    if (!parsedCount || parsedCount <= 0) return { success: false, msg: '请填写正确的预订人数' };
     if (parsedCount > freeBoat.max_capacity) {
-      return { success: false, msg: `安全提醒：【${freeBoat.name}】最多仅能容纳 ${freeBoat.max_capacity} 人，您输入了 ${parsedCount} 人。` };
+      return { success: false, msg: `超出所分配的 ${freeBoat.name} 最大载客量（${freeBoat.max_capacity}人），请减少人数或分批预订` };
     }
 
-    // 4. 【核心防冲突锁定】利用 _id 唯一性约束进行原子操作
-    // 构造一把唯一的“锁”，例如：2026-05-01_08:30_船只ID
+    // 6. 构造唯一的锁ID防并发超卖：日期_时间_船只ID
     const lockId = `${date}_${time}_${freeBoat._id}`;
 
-    // 尝试把这把锁写入 slots 集合。如果两人同时到这一步，数据库底层会直接拒绝第二个人的写入。
+    // 7. 写入占位锁 (如果有两个人同时抢这艘船，只有一个人能写入成功，另一个人会触发 duplicate key error)
     await db.collection('slots').add({
       data: {
-        _id: lockId, // 唯一标识，如果重复会抛出 error
+        _id: lockId, 
         date: date,
         time_slot: time,
         resource_id: freeBoat._id,
@@ -59,33 +56,60 @@ exports.main = async (event, context) => {
       }
     });
     
-    // 5. 锁单成功！安全地生成正式的订单记录
+    // 8. 写入正式订单，并将获取到的 userOpenId 绑定到订单的 _openid 字段
     await db.collection('bookings').add({
       data: {
+        _openid: userOpenId,  // 👈 核心排雷：绑定用户身份
         customer_name: name,
         phone: phone,
-        guest_count: parsedCount, // 使用转换后的安全数字
+        guest_count: parsedCount,
         activity_type: activityType,
         date: date,
         time: time,
         resource_id: freeBoat._id,
-        status: 0, // 0: 待处理 (等待老板确认)
+        status: 0, // 0 代表待确认/未处理
         create_time: db.serverDate()
       }
     });
 
-    return { 
-      success: true, 
-      msg: '预约提交成功！',
-      boatAssigned: freeBoat.name 
-    };
+    // 9. 跨项目联动计算逻辑：判断某项目的船是否已经全满，以便通知前端日历变色
+    const SESSIONS_PER_DAY = 3; 
+    for (const cap of freeBoat.capabilities) {
+      const capBoatsRes = await db.collection('resources').where({
+        capabilities: cap,
+        status: 'active'
+      }).get();
+      
+      const capBoatIds = capBoatsRes.data.map(b => b._id);
+      const maxSlots = capBoatIds.length * SESSIONS_PER_DAY; 
+
+      const capUsedSlots = await db.collection('slots').where({
+        date: date,
+        resource_id: _.in(capBoatIds)
+      }).count();
+
+      if (capUsedSlots.total >= maxSlots) {
+        const statusId = `${date}_${cap}`;         
+        // 使用 set 避免重复创建同一天的满员记录
+        await db.collection('daily_status').doc(statusId).set({
+          data: {
+            date: date,
+            activityType: cap,
+            isFull: true,
+            update_time: db.serverDate()
+          }
+        });
+      }
+    }
+
+    return { success: true, msg: '预订成功', boatAssigned: freeBoat.name };
 
   } catch (err) {
-    // 错误处理：如果报错是因为 _id 重复，说明刚被别人抢走
+    // 捕获唯一索引冲突报错，提示用户被抢先了
     if (err.message && (err.message.includes('duplicate key error') || err.errCode === -502001)) {
-       return { success: false, msg: '哎呀晚了一步，该档期刚被抢走啦' };
+       return { success: false, msg: '手慢了，该船期刚刚被抢占，请重试' };
     }
-    console.error('云函数内部错误：', err);
-    return { success: false, msg: '系统繁忙，请重试' };
+    console.error("SubmitBooking Error:", err);
+    return { success: false, msg: '系统错误，请重试' };
   }
 };

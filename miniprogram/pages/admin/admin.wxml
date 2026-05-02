@@ -1,0 +1,9 @@
+<view class="container" wx:if="{{isAuthorized}}">
+  <view class="header">
+    <text class="title">管理看板</text>
+  </view>
+  </view><view class="container" wx:if="{{isAuthorized}}">
+  <view class="header">
+    <text class="title">管理看板</text>
+  </view>
+  </view>

@@ -29,4 +29,6 @@
       <view class="arrow">></view>
     </view>
   </view>
+
+  <view class="easter-egg" bindtap="goToAdmin">⚓</view>
 </view>

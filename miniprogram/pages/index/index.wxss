@@ -60,3 +60,17 @@
   color: #cccccc;
   font-family: monospace;
 }
+
+/* 🤫 彩蛋按钮样式：固定在右下角，极低透明度 */
+.easter-egg {
+  position: fixed;
+  bottom: 60rpx;
+  right: 60rpx;
+  font-size: 40rpx;
+  opacity: 0.1; /* 几乎隐形 */
+  transition: opacity 0.3s;
+}
+
+.easter-egg:active {
+  opacity: 1; /* 老板按住时稍微显现 */
+}
