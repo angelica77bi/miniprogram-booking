@@ -1,31 +1,38 @@
 <view class="admin-container" wx:if="{{isAuthorized}}">
   <view class="admin-header">
-    <text class="admin-title">订单管理看板</text>
+    <text class="admin-title">待处理订单</text>
     <text class="admin-count">共 {{bookings.length}} 条预约</text>
   </view>
 
   <scroll-view scroll-y="true" class="order-list">
-    <view class="no-data" wx:if="{{bookings.length === 0}}">暂无订单数据</view>
+    <view class="no-data" wx:if="{{bookings.length === 0}}">太棒了，目前没有积压订单</view>
     
     <block wx:for="{{bookings}}" wx:key="_id">
       <view class="order-card">
-        <view class="order-info-row">
-          <text class="order-date">{{item.date}} {{item.time}}</text>
-          <text class="order-status status-{{item.status}}">{{item.status === 0 ? '待处理' : '已确认'}}</text>
+        
+        <view class="card-row-1">
+          <text class="order-date">🗓️ {{item.date}} {{item.time}}</text>
+          <text class="order-status status-{{item.status}}">
+            {{item.status === 0 ? '待处理' : (item.status === 1 ? '✅已确认' : '❌已取消')}}
+          </text>
         </view>
 
-        <view class="order-main">
-          <view class="customer-info">
-            <text class="customer-name">{{item.customer_name}}</text>
-            <text class="guest-count">{{item.guest_count}} 人</text>
-          </view>
+        <view class="card-row-2">
+          <text class="customer-name">{{item.customer_name || item.name}}</text>
+          <text class="guest-count">👤 {{item.guest_count || item.count}}人</text>
+          <text class="customer-phone">{{item.phone}}</text>
           <view class="activity-tag">{{item.activity_type === 'snorkeling' ? '🤿 浮潜' : (item.activity_type === 'fishing' ? '🎣 海钓' : '🚤 混合')}}</view>
         </view>
 
-        <view class="order-action">
-          <view class="phone-number">{{item.phone}}</view>
-          <button class="call-btn" bindtap="makeCall" data-phone="{{item.phone}}">📞 拨号</button>
+        <view class="card-row-3">
+          <view class="call-btn-card" bindtap="makeCall" data-phone="{{item.phone}}">📞</view>
+          
+          <view class="action-buttons" wx:if="{{item.status === 0}}">
+            <button class="action-btn confirm" bindtap="handleOrder" data-id="{{item._id}}" data-action="confirm" data-openid="{{item._openid}}">确认接单</button>
+            <button class="action-btn cancel" bindtap="handleOrder" data-id="{{item._id}}" data-action="reject" data-openid="{{item._openid}}">取消订单</button>
+          </view>
         </view>
+
       </view>
     </block>
   </scroll-view>
