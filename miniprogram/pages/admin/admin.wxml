@@ -1,9 +1,32 @@
-<view class="container" wx:if="{{isAuthorized}}">
-  <view class="header">
-    <text class="title">管理看板</text>
+<view class="admin-container" wx:if="{{isAuthorized}}">
+  <view class="admin-header">
+    <text class="admin-title">订单管理看板</text>
+    <text class="admin-count">共 {{bookings.length}} 条预约</text>
   </view>
-  </view><view class="container" wx:if="{{isAuthorized}}">
-  <view class="header">
-    <text class="title">管理看板</text>
-  </view>
-  </view>
+
+  <scroll-view scroll-y="true" class="order-list">
+    <view class="no-data" wx:if="{{bookings.length === 0}}">暂无订单数据</view>
+    
+    <block wx:for="{{bookings}}" wx:key="_id">
+      <view class="order-card">
+        <view class="order-info-row">
+          <text class="order-date">{{item.date}} {{item.time}}</text>
+          <text class="order-status status-{{item.status}}">{{item.status === 0 ? '待处理' : '已确认'}}</text>
+        </view>
+
+        <view class="order-main">
+          <view class="customer-info">
+            <text class="customer-name">{{item.customer_name}}</text>
+            <text class="guest-count">{{item.guest_count}} 人</text>
+          </view>
+          <view class="activity-tag">{{item.activity_type === 'snorkeling' ? '🤿 浮潜' : (item.activity_type === 'fishing' ? '🎣 海钓' : '🚤 混合')}}</view>
+        </view>
+
+        <view class="order-action">
+          <view class="phone-number">{{item.phone}}</view>
+          <button class="call-btn" bindtap="makeCall" data-phone="{{item.phone}}">📞 拨号</button>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+</view>

@@ -141,9 +141,11 @@ Page({
     this.setData({ [`formData.${field}`]: e.detail.value });
   },
 
+  // ✨ 第一步：点击提交按钮时，先触发微信授权弹窗
   submitBooking() {
     const { name, phone, count } = this.data.formData;
 
+    // 你原有的前置表单校验
     if (!name || !phone || !count) {
       wx.showToast({ title: '请填写完整信息', icon: 'none' });
       return;
@@ -153,6 +155,28 @@ Page({
       wx.showModal({ title: '提示', content: '单次最多预订 8 人', showCancel: false });
       return;
     }
+
+    // 准备我们要申请的 3 个模板 ID
+    const tmplIds = [
+      'jmV_dfVSiEpFFGspTtLD5X3H6_pj--CL6VAFZr9s8UY', // 受理通知
+      'ttJ4NwdzJ6MCTFVN8k3jI_qMWK7a5TpaK_KweTNR980', // 活动开始通知
+      'XrJf6WQqx8wWoYcB5cva26heVKpvyteLP93Za9L-iT0'  // 档期变更通知
+    ];
+
+    // 呼出微信原生授权弹窗
+    wx.requestSubscribeMessage({
+      tmplIds: tmplIds,
+      complete: (res) => {
+        // 🚨 不管用户点允许、拒绝还是直接关掉，都继续执行你的真实提交！
+        console.log('订阅消息授权结果：', res);
+        this.executeActualSubmit(); 
+      }
+    });
+  },
+
+  // ✨ 第二步：这完全是你自己写的提交代码，我只是把它换了个名字
+  executeActualSubmit() {
+    const { name, phone, count } = this.data.formData; // 重新获取一下以防万一
 
     wx.showLoading({ title: '提交中...', mask: true });
 
@@ -171,10 +195,16 @@ Page({
         const result = res.result;
 
         if (result && result.success) {
-          wx.showToast({ title: '预订成功', icon: 'success' });
-          console.log('分配到的船只:', result.boatAssigned);
-          this.closeModal();
-          setTimeout(() => { wx.reLaunch({ url: '/pages/index/index' }); }, 1500);
+          // 我稍微把文案改得更符合带通知的语境
+          wx.showModal({
+            title: '预订申请已提交',
+            content: '老板确认后将通过微信通知您。',
+            showCancel: false,
+            success: () => {
+              this.closeModal();
+              wx.reLaunch({ url: '/pages/index/index' });
+            }
+          });
         } else {
           wx.showToast({ title: result ? result.msg : '预订失败', icon: 'none', duration: 3000 });
         }
