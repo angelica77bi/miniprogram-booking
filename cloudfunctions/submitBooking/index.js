@@ -20,18 +20,23 @@ exports.main = async (event, context) => {
       status: 'active'
     }).get();
     
-    const availableBoats = boatsRes.data;
+    let availableBoats = boatsRes.data;
     if (availableBoats.length === 0) return { success: false, msg: '当前项目无可用船只' };
+
+    // ✨✨✨ 核心增加：优先调度算法 ✨✨✨
+    // 按船只拥有的 capabilities 数量从小到大排序（专项船排在全能船前面）
+    // 这样如果定海钓，系统会优先尝试分配“只能海钓”的B船，而把“全能型”的A船留出
+    availableBoats.sort((a, b) => (a.capabilities || []).length - (b.capabilities || []).length);
 
     // 3. 查找该日期、该时段已经被占用的资源 (船只)
     const slotsRes = await db.collection('slots').where({
       date: date,
-      time_slot: time
+      time: time
     }).get();
     
     const bookedBoatIds = slotsRes.data.map(slot => slot.resource_id);
     
-    // 4. 分配空闲船只
+    // 4. 分配空闲船只（此时 availableBoats 已按优先级排序）
     const freeBoat = availableBoats.find(boat => !bookedBoatIds.includes(boat._id));
     if (!freeBoat) return { success: false, msg: '该时段已满，请选择其他时段' };
 
@@ -50,7 +55,7 @@ exports.main = async (event, context) => {
       data: {
         _id: lockId, 
         date: date,
-        time_slot: time,
+        time: time,
         resource_id: freeBoat._id,
         create_time: db.serverDate()
       }

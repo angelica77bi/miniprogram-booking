@@ -104,8 +104,9 @@ Page({
     for (let i = 1; i <= daysInMonth; i++) {
       const dateStr = `${year}-${month.toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
       
-      // 判断该日期是否在允许的范围内（>=今天 且 <=最大日期）
-      const isSelectable = dateStr >= this.data.todayStr && dateStr <= this.data.maxDateStr;
+      // ✨ 核心修改点：限制最小值
+      // 将原有的 >= 修改为 >，这样今日 (todayStr) 也会变为不可选状态
+      const isSelectable = dateStr > this.data.todayStr && dateStr <= this.data.maxDateStr;
       
       // 🚨 判断这一天是否在后端的满房数组里
       const isFull = bookedDates.includes(dateStr);
@@ -164,7 +165,7 @@ Page({
   // 点击日期，携带日期和项目类型跳转到“时段页”
   goToSchedule(e) {
     const item = e.currentTarget.dataset.item;
-    // 🚨 满房 (isFull) 并没有在这里被拦截，所以满房状态依然可以点击跳转！
+    // 满房或不可选（包含今天及过去）的日期将在此处被拦截
     if (item.empty || !item.isSelectable) return;
 
     wx.navigateTo({

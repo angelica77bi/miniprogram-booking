@@ -1,74 +1,84 @@
 <view class="container">
 
-  <view class="matrix-container">
-    
-    <view class="fixed-left">
-      <view class="matrix-cell corner-cell"></view>
-      <view class="matrix-cell time-cell" wx:for="{{timeSlots}}" wx:key="*this">
-        {{item}}
-      </view>
-    </view>
-
-    <scroll-view class="scroll-right" scroll-x="true" enable-flex="true">
-      <view class="grid-wrapper">
-        
-        <view class="matrix-row header-row">
-          <view class="matrix-cell date-cell" wx:for="{{dateList}}" wx:key="dateStr">
-            <text class="date-text">{{item.display}}</text>
-          </view>
-        </view>
-
-        <view class="matrix-row" wx:for="{{matrix}}" wx:for-item="row" wx:key="time">
-          <view 
-            class="matrix-cell status-cell" 
-            wx:for="{{row.days}}" 
-            wx:for-item="day" 
-            wx:key="dateStr"
-            bindtap="selectCell"
-            data-time="{{row.time}}"
-            data-date="{{day.dateStr}}"
-            data-status="{{day.status}}"
-          >
-            <view class="status-indicator {{day.dateStr === selectedDate && row.time === selectedTime ? 'selected' : day.status}}">
-              {{day.dateStr === selectedDate && row.time === selectedTime ? '已选' : (day.status === 'full' ? '已满' : '可选')}}
-            </view>
-          </view>
-        </view>
-
-      </view>
-    </scroll-view>
-  </view>
-
-  <view class="selection-feedback" wx:if="{{selectedDate && selectedTime}}">
-    已选定：<text class="highlight">{{selectedDate}} {{selectedTime}}</text>
-  </view>
-
-  <view class="footer">
-    <button class="book-btn" bindtap="openModal">填写预约信息</button>
-  </view>
-
-  <view class="modal-overlay" wx:if="{{showModal}}">
-    <view class="modal-box">
-      <view class="modal-header">
-        <text class="modal-title">预约信息填写</text>
-        <text class="close-btn" bindtap="closeModal">×</text>
-      </view>
-      <view class="modal-form">
-        <view class="form-item">
-          <text class="label">预约人姓名</text>
-          <input class="input" placeholder="请输入姓名" data-field="name" bindinput="handleInput"/>
-        </view>
-        <view class="form-item">
-          <text class="label">联系电话</text>
-          <input class="input" type="number" placeholder="请输入手机号" data-field="phone" bindinput="handleInput"/>
-        </view>
-        <view class="form-item">
-          <text class="label">出海人数 (最大8人)</text>
-          <input class="input" type="number" placeholder="输入人数" data-field="count" bindinput="handleInput"/>
-        </view>
-      </view>
-      <button class="submit-btn" bindtap="submitBooking">确认提交</button>
+<view class="matrix-container">
+  
+  <view class="fixed-left">
+    <view class="matrix-cell corner-cell"></view>
+    <view class="matrix-cell time-cell" wx:for="{{timeSlots}}" wx:key="*this">
+      {{item}}
     </view>
   </view>
+
+  <scroll-view 
+    class="scroll-right" 
+    scroll-x="true" 
+    enable-flex="true" 
+    scroll-left="{{scrollLeft}}" 
+    scroll-with-animation="true"
+  >
+    <view class="grid-wrapper">
+      
+      <view class="matrix-row header-row">
+        <view 
+          class="matrix-cell date-cell {{item.isTarget ? 'target-date' : ''}}" 
+          wx:for="{{dateList}}" 
+          wx:key="dateStr"
+        >
+          <text class="date-text">{{item.display}}</text>
+        </view>
+      </view>
+
+      <view class="matrix-row" wx:for="{{matrix}}" wx:for-item="row" wx:key="time">
+        <view 
+          class="matrix-cell status-cell" 
+          wx:for="{{row.days}}" 
+          wx:for-item="day" 
+          wx:key="dateStr"
+          bindtap="selectCell"
+          data-time="{{row.time}}"
+          data-date="{{day.dateStr}}"
+          data-status="{{day.status}}"
+        >
+          <view class="status-indicator {{day.dateStr === selectedDate && row.time === selectedTime ? 'selected' : day.status}}">
+            {{day.dateStr === selectedDate && row.time === selectedTime ? '已选' : (day.status === 'full' ? '已满' : '可选')}}
+          </view>
+        </view>
+      </view>
+
+    </view>
+  </scroll-view>
+</view>
+
+<view class="selection-feedback" wx:if="{{selectedDate && selectedTime}}">
+  已选定：<text class="highlight">{{selectedDate}} {{selectedTime}}</text>
+</view>
+
+<view class="footer">
+  <button class="book-btn" bindtap="openModal">填写预约信息</button>
+</view>
+
+<view class="modal-overlay" wx:if="{{showModal}}">
+  <view class="modal-box">
+    <view class="modal-header">
+      <text class="modal-title">预约信息填写</text>
+      <text class="close-btn" bindtap="closeModal">×</text>
+    </view>
+    <view class="modal-form">
+      <view class="form-item">
+        <text class="label">预约人姓名</text>
+        <input class="input" placeholder="请输入姓名" data-field="name" bindinput="handleInput"/>
+      </view>
+      <view class="form-item">
+        <text class="label">联系电话</text>
+        <input class="input" type="number" placeholder="请输入手机号" data-field="phone" bindinput="handleInput"/>
+      </view>
+      <view class="form-item">
+        <text class="label">出海人数 (最大8人)</text>
+        <input class="input" type="number" placeholder="输入人数" data-field="count" bindinput="handleInput"/>
+      </view>
+    </view>
+    <button class="submit-btn" bindtap="submitBooking">确认提交</button>
+  </view>
+</view>
 
 </view>
